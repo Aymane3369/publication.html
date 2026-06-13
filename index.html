@@ -718,12 +718,9 @@
           </div>
           <div class="article-title">${titleHl}</div>
           <div class="article-body" id="body-${d.id}">${bodyHl}</div>
-          <button class="read-more" id="rm-${d.id}" onclick="toggleBody('${d.id}')">Lire la suite →</button>
-        </div>
-        ${isAdmin ? `<div class="article-footer">
-          <button class="btn-action btn-edit" data-id="${d.id}">✏️ Modifier</button>
-          <button class="btn-action btn-del"  data-id="${d.id}">🗑 Supprimer</button>
-        </div>` : ''}`;
+      card.innerHTML = mediaHtml + `
+  <div class="article-content">
+    <div class="article-meta">
 
       if (isAdmin) {
         card.querySelector('.btn-edit').addEventListener('click', () => startEdit(d.id));
