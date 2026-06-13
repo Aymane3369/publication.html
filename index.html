@@ -654,9 +654,9 @@ mark { background:var(--accent-dim); color:var(--accent); border-radius:3px; pad
   
       const titleHl = q ? highlight(d.title, q) : esc(d.title);  
       const bodyText = q ? highlight(d.body, q) : esc(d.body);
-let bodyHtml = (d.body || '')
-  .replace(/\r\n/g, '\n')
-  .split('\n\n')
+const bodyHtml = (d.body || '')
+  .replace(/\r\n/g, '\n')        // sécurité Windows
+  .split('\n\n')                 // 👈 double saut = nouveau paragraphe
   .map(p => p.trim())
   .filter(Boolean)
   .map(p => `<p>${p}</p>`)
