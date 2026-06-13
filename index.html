@@ -653,8 +653,13 @@ mark { background:var(--accent-dim); color:var(--accent); border-radius:3px; pad
       }  
   
       const titleHl = q ? highlight(d.title, q) : esc(d.title);  
-      const bodyHl  = q ? highlight(d.body,  q) : esc(d.body);  
-  
+      const bodyText = q ? highlight(d.body, q) : esc(d.body);
+const bodyHl = bodyText
+  .split('\n')
+  .map(p => p.trim())
+  .filter(Boolean)
+  .map(p => `<p>${p}</p>`)
+  .join('');
       const card = document.createElement('div');  
       card.className = 'article-card';  
       card.id = 'article-' + d.id;  
