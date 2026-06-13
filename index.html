@@ -1,33 +1,43 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="dark">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Le Journal</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="referrer" content="strict-origin-when-cross-origin"/>
+  <title>Le Journal</title>
 
 <style>
-/* ===== TON CSS INCHANGÉ (gardé tel quel) ===== */
-body { font-family: Arial, sans-serif; }
+/* ===== TON CSS INCHANGÉ ===== */
 </style>
+
 </head>
 
 <body>
 
 <header>
-  <h1>Le Journal</h1>
+  <a class="brand" href="#"><span class="brand-dot"></span>Le Journal</a>
 </header>
 
-<input id="search-input" placeholder="Rechercher..." oninput="onSearch()"/>
+<section class="hero">
+  <input type="text" id="search-input" placeholder="Rechercher..." oninput="onSearch()"/>
+</section>
+
+<div class="page">
 
 <main>
-  <div id="articles-list">Chargement...</div>
+  <div id="articles-list"><div id="empty-main">Chargement…</div></div>
 </main>
 
 <aside>
   <ul id="index-list"></ul>
 </aside>
 
+</div>
+
+<!-- FIREBASE -->
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
@@ -57,38 +67,65 @@ let editingId = null;
 /* ================= LOAD ================= */
 async function loadArticles() {
   const listEl = document.getElementById("articles-list");
-  listEl.innerHTML = "Chargement...";
+  listEl.innerHTML = "<div style='text-align:center'>Chargement…</div>";
 
-  const snap = await getDocs(query(collection(db, "articles"), orderBy("createdAt", "desc")));
+  try {
+    const snap = await getDocs(
+      query(collection(db, "articles"), orderBy("createdAt", "desc"))
+    );
 
-  allArticles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    allArticles = [];
+    snap.forEach(d => allArticles.push({ id: d.id, ...d.data() }));
 
-  renderArticles(allArticles);
-  renderIndex(allArticles);
+    renderArticles(allArticles);
+    renderIndex(allArticles);
+
+  } catch (e) {
+    listEl.innerHTML = `<div style="color:red;padding:1rem">Erreur : ${e.message}</div>`;
+  }
 }
 
 /* ================= RENDER ARTICLES ================= */
 function renderArticles(list) {
   const listEl = document.getElementById("articles-list");
-  listEl.innerHTML = "";
+  const labelEl = document.getElementById("articles-label");
+
+  const q = document.getElementById("search-input").value.trim().toLowerCase();
 
   if (!list.length) {
-    listEl.innerHTML = "<p>Aucun article</p>";
+    listEl.innerHTML = "<div>Aucun article</div>";
     return;
   }
 
-  list.forEach(a => {
-    const date = a.createdAt
-      ? new Date(a.createdAt.seconds * 1000).toLocaleDateString("fr-FR")
-      : "";
+  listEl.innerHTML = "";
+
+  list.forEach(d => {
+
+    const date = d.createdAt
+      ? new Date(d.createdAt.seconds * 1000)
+          .toLocaleDateString("fr-FR",{day:'numeric',month:'long',year:'numeric'})
+      : "—";
 
     const card = document.createElement("div");
+    card.className = "article-card";
 
     card.innerHTML = `
-      <h2>${esc(a.title)}</h2>
-      <p>${esc(a.body)}</p>
-      <small>${date}</small>
-      <hr/>
+      <div class="article-content">
+        <div class="article-meta">
+          <span class="article-date">📅 ${date}</span>
+          <span class="tag">Article</span>
+        </div>
+
+        <div class="article-title">${esc(d.title)}</div>
+
+        <div class="article-body" id="body-${d.id}">
+          ${esc(d.body)}
+        </div>
+
+        <button class="read-more" onclick="toggleBody('${d.id}')">
+          Lire la suite →
+        </button>
+      </div>
     `;
 
     listEl.appendChild(card);
@@ -100,22 +137,28 @@ function renderIndex(list) {
   const ul = document.getElementById("index-list");
 
   if (!list.length) {
-    ul.innerHTML = "<li>Aucun article</li>";
+    ul.innerHTML = '<li class="no-results">Aucun article</li>';
     return;
   }
 
   ul.innerHTML = "";
 
-  list.forEach((a, i) => {
-    const li = document.createElement("li");
+  list.forEach((d, i) => {
 
-    const date = a.createdAt
-      ? new Date(a.createdAt.seconds * 1000).toLocaleDateString("fr-FR")
+    const date = d.createdAt
+      ? new Date(d.createdAt.seconds * 1000)
+          .toLocaleDateString("fr-FR",{day:'numeric',month:'short'})
       : "";
 
+    const li = document.createElement("li");
+    li.className = "index-item";
+
     li.innerHTML = `
-      <strong>${i + 1}</strong> ${esc(a.title)} <br/>
-      <small>${date}</small>
+      <span class="index-num">${i+1}</span>
+      <div>
+        <div class="index-title">${esc(d.title)}</div>
+        <div class="index-date">${date}</div>
+      </div>
     `;
 
     ul.appendChild(li);
@@ -126,31 +169,33 @@ function renderIndex(list) {
 window.onSearch = () => {
   const q = document.getElementById("search-input").value.toLowerCase();
 
-  const filtered = allArticles.filter(a =>
-    a.title.toLowerCase().includes(q) ||
-    a.body.toLowerCase().includes(q)
-  );
+  const filtered = q
+    ? allArticles.filter(a =>
+        a.title.toLowerCase().includes(q) ||
+        a.body.toLowerCase().includes(q)
+      )
+    : allArticles;
 
   renderArticles(filtered);
   renderIndex(filtered);
 };
 
-/* ================= ESCAPE FIXÉ ================= */
+/* ================= READ MORE ================= */
+window.toggleBody = (id) => {
+  const el = document.getElementById("body-" + id);
+  el.classList.toggle("expanded");
+};
+
+/* ================= HELPERS FIXÉS ================= */
 function esc(s) {
   return (s || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
 }
 
-/* ================= AUTH ================= */
-onAuthStateChanged(auth, user => {
-  isAdmin = user && user.email === ADMIN_EMAIL;
-  loadArticles();
-});
-
-/* first load */
+/* ================= START ================= */
 loadArticles();
 
 </script>
