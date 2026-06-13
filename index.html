@@ -684,9 +684,35 @@
       const card = document.createElement('div');
       card.className = 'article-card';
       card.id = 'article-' + d.id;
-      card.innerHTML = mediaHtml + `
-        <div class="article-content">
-          <div class="article-meta">
+      card.innerHTML = `
+  ${mediaHtml}
+
+  <div class="article-content">
+    <div class="article-meta">
+      <span class="article-date">📅 ${date}</span>
+      <span class="tag">Article</span>
+    </div>
+
+    <div class="article-title">
+      ${titleHl}
+    </div>
+
+    <div class="article-body" id="body-${d.id}">
+      ${bodyHl}
+    </div>
+
+    <button class="read-more" id="rm-${d.id}" onclick="toggleBody('${d.id}')">
+      Lire la suite →
+    </button>
+  </div>
+
+  ${isAdmin ? `
+    <div class="article-footer">
+      <button class="btn-action btn-edit" data-id="${d.id}">✏️ Modifier</button>
+      <button class="btn-action btn-del" data-id="${d.id}">🗑 Supprimer</button>
+    </div>
+  ` : ""}
+`;
             <span class="article-date">📅 ${date}</span>
             <span class="tag">Article</span>
           </div>
