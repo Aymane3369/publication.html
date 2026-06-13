@@ -642,28 +642,27 @@ list.forEach(d => {
   }    
 
   const titleHl = q ? highlight(d.title, q) : esc(d.title);    
-  const bodyText = q ? highlight(d.body, q) : esc(d.body);
+  const bodyHl  = q ? highlight(d.body,  q) : esc(d.body);    
 
-const bodyHtml = (d.body || '')
-.replace(/\r\n/g, '\n')        // sécurité Windows
-.split('\n\n')                 // 👈 double saut = nouveau paragraphe
-.map(p => p.trim())
-.filter(Boolean)
-.map(p => <p>${p}</p>)
-.join('');
+  const card = document.createElement('div');    
+  card.className = 'article-card';    
+  card.id = 'article-' + d.id;    
+  card.innerHTML = mediaHtml + `    
+    <div class="article-content">    
+      <div class="article-meta">    
+        <span class="article-date">📅 ${date}</span>    
+        <span class="tag">Article</span>    
+      </div>    
+      <div class="article-title">${titleHl}</div>    
+      <div class="article-body" id="body-${d.id}">${bodyHl}</div>    
+      <button class="read-more" id="rm-${d.id}" onclick="toggleBody('${d.id}')">Lire la suite →</button>    
+    </div>    
+    ${isAdmin ? `<div class="article-footer">    
+      <button class="btn-action btn-edit" data-id="${d.id}">✏️ Modifier</button>    
+      <button class="btn-action btn-del"  data-id="${d.id}">🗑 Supprimer</button>    
+    </div>` : ''}`;    
 
-const bodyHl = q ? highlight(bodyHtml, q) : bodyHtml;
-
-const bodyHl = q ? highlight(body, q) : body;
-const card = document.createElement('div');
-card.className = 'article-card';
-card.id = 'article-' + d.id;
-card.innerHTML = mediaHtml +     <div class="article-content">     <div class="article-meta">     <span class="article-date">📅 ${date}</span>     <span class="tag">Article</span>     </div>     <div class="article-title">${titleHl}</div>     <div class="article-body" id="body-${d.id}">${bodyHl}</div>     <button class="read-more" id="rm-${d.id}" onclick="toggleBody('${d.id}')">Lire la suite →</button>     </div>     ${isAdmin ?<div class="article-footer">
-<button class="btn-action btn-edit" data-id="${d.id}">✏️ Modifier</button>
-<button class="btn-action btn-del"  data-id="${d.id}">🗑 Supprimer</button>
-</div> : ''};
-
-if (isAdmin) {    
+  if (isAdmin) {    
     card.querySelector('.btn-edit').addEventListener('click', () => startEdit(d.id));    
     card.querySelector('.btn-del').addEventListener('click',  () => deleteArticle(d.id));    
   }    
@@ -752,4 +751,4 @@ return safe.replace(re, '<mark>$1</mark>');
 }
 </script>  </body>
 
-</html>
+</html> 
