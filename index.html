@@ -654,11 +654,15 @@ mark { background:var(--accent-dim); color:var(--accent); border-radius:3px; pad
   
       const titleHl = q ? highlight(d.title, q) : esc(d.title);  
       const bodyText = q ? highlight(d.body, q) : esc(d.body);
-let body = (d.body || '')
-  .split('\n')
+let bodyHtml = (d.body || '')
+  .replace(/\r\n/g, '\n')
+  .split('\n\n')
+  .map(p => p.trim())
   .filter(Boolean)
   .map(p => `<p>${p}</p>`)
   .join('');
+
+const bodyHl = q ? highlight(bodyHtml, q) : bodyHtml;
 
 const bodyHl = q ? highlight(body, q) : body;
       const card = document.createElement('div');  
