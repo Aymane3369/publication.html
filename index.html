@@ -651,17 +651,18 @@ mark { background:var(--accent-dim); color:var(--accent); border-radius:3px; pad
              style="color:var(--accent);text-decoration:underline;">Voir la vidéo</a>  
         </div>`;  
       }  
-  
-      const titleHl = q ? highlight(d.title, q) : esc(d.title);  
-      const bodyText = q ? highlight(d.body, q) : esc(d.body);
-const bodyHtml = (d.body || '')
-  .replace(/\r\n/g, '\n')        // sécurité Windows
-  .split('\n\n')                 // 👈 double saut = nouveau paragraphe
+  const titleHl = q ? highlight(d.title, q) : esc(d.title);
+
+let bodyHtml = (d.body || '')
+  .replace(/\r\n/g, '\n')
+  .split('\n\n')
   .map(p => p.trim())
   .filter(Boolean)
   .map(p => `<p>${p}</p>`)
   .join('');
 
+bodyHtml = q ? highlight(bodyHtml, q) : bodyHtml;
+      
 const bodyHl = q ? highlight(bodyHtml, q) : bodyHtml;
 
 const bodyHl = q ? highlight(body, q) : body;
